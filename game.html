@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Challenge: Swahili & Nyanja</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light grayish-blue background */
+        }
+
+        /* --- General Styles --- */
+        .game-container { /* Combined style for game area */
+            background: linear-gradient(135deg, #ffffff 0%, #eef2f7 100%);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.04);
+            padding: 2rem;
+            transition: all 0.3s ease-in-out;
+            width: 95%;
+            max-width: 800px;
+            margin: 1rem auto;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 0.25rem; /* Add small margin */
+        }
+        .btn-primary { background-color: #4f46e5; color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: #4338ca; }
+        .btn-secondary { background-color: #e5e7eb; color: #374151; }
+        .btn-secondary:hover:not(:disabled) { background-color: #d1d5db; }
+         .btn:disabled {
+             background-color: #9ca3af; /* Gray-400 */
+             cursor: not-allowed;
+             opacity: 0.7;
+         }
+        .btn-review { /* Specific style for review button */
+            background-color: #f59e0b; /* Amber 500 */
+            color: white;
+            padding: 0.5rem 1rem; /* Smaller padding */
+            font-size: 0.875rem; /* Smaller font */
+        }
+         .btn-review:hover:not(:disabled) { background-color: #d97706; } /* Amber 600 */
+
+
+        .input-field {
+            border: 2px solid #d1d5db; padding: 0.75rem 1rem; border-radius: 0.5rem;
+            transition: border-color 0.2s ease; width: 100%;
+        }
+        .input-field:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3); }
+
+        .flag-icon { font-size: 3rem; margin-bottom: 0.5rem; display: block; }
+
+        .feedback { min-height: 8rem; font-weight: 600; margin-top: 1rem; padding: 0.75rem; border-radius: 0.5rem; text-align: center; }
+        .feedback-correct { color: #16a34a; }
+        .feedback-correct span { display: block; margin-bottom: 0.25rem; }
+        .feedback-incorrect { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .feedback-incorrect .review-section { margin-top: 0.75rem; }
+        .feedback-incorrect .review-explanation { font-size: 0.85rem; margin-top: 0.5rem; color: #7f1d1d; text-align: left; padding: 0.5rem; background-color: #fecaca; border-radius: 0.25rem;}
+        .feedback-gameover { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .feedback-gameover .explanation { font-size: 0.9rem; margin-top: 0.75rem; color: #7f1d1d; text-align: left; padding: 0.5rem; background-color: #fecaca; border-radius: 0.25rem;}
+        .feedback-complete { color: #16a34a; font-size: 1.25rem; }
+        .feedback-complete span { display: block; margin-bottom: 0.25rem; }
+
+
+        .timer { font-size: 1.5rem; font-weight: 700; color: #4f46e5; }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background-color: #fff; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); width: 90%; max-width: 500px; text-align: center; }
+
+        /* Checkbox/Radio Styles */
+        .custom-checkbox, .custom-radio { appearance: none; background-color: #fff; margin: 0; font: inherit; color: currentColor; width: 1.15em; height: 1.15em; border: 0.15em solid #d1d5db; transform: translateY(-0.075em); display: inline-grid; place-content: center; cursor: pointer; }
+        .custom-checkbox { border-radius: 0.25em; }
+        .custom-radio { border-radius: 50%; }
+        .custom-checkbox::before { content: ""; width: 0.65em; height: 0.65em; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em #4f46e5; transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
+        .custom-radio::before { content: ""; width: 0.65em; height: 0.65em; border-radius: 50%; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em #4f46e5; }
+        .custom-checkbox:checked::before, .custom-radio:checked::before { transform: scale(1); }
+        .custom-checkbox:focus, .custom-radio:focus { outline: max(2px, 0.15em) solid #a5b4fc; outline-offset: max(2px, 0.15em); }
+
+         /* Progress Bar */
+        .progress-bar-container { width: 100%; background-color: #e5e7eb; border-radius: 0.5rem; overflow: hidden; height: 1rem; margin-bottom: 1rem; }
+        .progress-bar { height: 100%; background-color: #4ade80; width: 0%; transition: width 0.3s ease-in-out; border-radius: 0.5rem; text-align: center; color: #166534; font-size: 0.75rem; line-height: 1rem; font-weight: 600; }
+
+        /* Removed Balloon Game Styles */
+
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="setupModal" class="modal" style="display: flex;">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Game Setup</h2>
+
+            <div class="mb-4 text-left">
+                <label class="block font-semibold mb-2 text-gray-700">Which language(s) do you know?</label>
+                <div>
+                    <label class="inline-flex items-center mr-4">
+                        <input type="checkbox" class="custom-checkbox known-lang" value="sw"> <span class="ml-2 text-gray-700">Swahili</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" class="custom-checkbox known-lang" value="ny"> <span class="ml-2 text-gray-700">Nyanja</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="baseLangSelection" class="mb-4 text-left" style="display: none;">
+                <label class="block font-semibold mb-2 text-gray-700">Choose your base language for prompts:</label>
+                <div id="baseLangOptions">
+                    </div>
+            </div>
+
+            <div class="mb-4 text-left">
+                <label for="targetLangSelect" class="block font-semibold mb-2 text-gray-700">Which language are you learning?</label>
+                <select id="targetLangSelect" class="input-field w-full">
+                    <option value="sw">Swahili</option>
+                    <option value="ny">Nyanja</option>
+                </select>
+            </div>
+
+             <div class="mb-4 text-left">
+                <label for="versionSelect" class="block font-semibold mb-2 text-gray-700">Choose Game Version:</label>
+                <select id="versionSelect" class="input-field w-full">
+                    <option value="0">Version 1 (Conjugation)</option>
+                    <option value="1">Version 2 (Conjugation)</option>
+                    <option value="2">Version 3 (Conjugation)</option>
+                    <option value="3">Version 4 (Conjugation)</option>
+                    <option value="4">Version 5 (Conjugation)</option>
+                    <option value="5">Version 6 (Vocabulary)</option>
+                    </select>
+            </div>
+
+            <div class="mb-6 text-left">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="timerCheckbox" class="custom-checkbox">
+                    <span class="ml-2 text-gray-700">Enable 20-second timer per question?</span>
+                </label>
+            </div>
+
+            <button id="startGameBtn" class="btn btn-primary w-full">Start Game</button>
+            <p id="setupError" class="text-red-600 mt-4 text-sm"></p>
+        </div>
+    </div>
+
+    <div id="gameArea" class="game-container" style="display: none;">
+        <div class="flex justify-between items-center mb-4">
+            <span class="text-lg font-semibold text-gray-700">Level: <span id="levelDisplay">1 / 10</span></span>
+            <span class="text-lg font-semibold text-gray-700">Attempts Left: <span id="attemptsDisplay">3</span></span>
+        </div>
+         <div class="progress-bar-container mb-6"> <div id="progressBar" class="progress-bar"></div> </div>
+        <div id="timerDisplay" class="timer mb-4" style="display: none;">20</div>
+        <div id="questionArea">
+             <div class="mb-4 p-4 bg-gray-100 rounded-lg border border-gray-200">
+                <p id="sourcePrompt" class="text-sm text-gray-600 mb-1">Translate this idea:</p>
+                <p id="sourceSentence" class="text-xl font-semibold text-gray-800"></p>
+            </div>
+            <div id="verbSection" class="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                <p class="text-sm text-indigo-700 mb-1">Using the verb:</p>
+                <p id="targetInfinitive" class="text-xl font-semibold text-indigo-900"></p>
+            </div>
+        </div>
+        <form id="answerForm">
+            <input type="text" id="answerInput" class="input-field mb-4" placeholder="Type your answer here..." autocomplete="off" required>
+            <button type="submit" class="btn btn-primary w-full">Submit Answer</button>
+        </form>
+        <div id="feedbackArea" class="feedback mt-6">
+             </div>
+        <button id="nextLevelBtn" class="btn btn-secondary mt-4" style="display: none;">Next Level</button>
+        <button id="restartVersionBtn" class="btn btn-secondary mt-4" style="display: none;">Restart Game</button> </div>
+
+    <script>
+        // --- Language Data (Swahili/Nyanja Only) ---
+        const langData = {
+            sw: { name: "Swahili", flag: "🇹🇿", tryAgain: "JARIBU TENA", gameOver: "MCHEZO UMEKWISHA", congrats: "HONGERA!", correct: "Sahihi!" },
+            ny: { name: "Nyanja", flag: "🇿🇲", tryAgain: "YESANI APENSO", gameOver: "MASOPELEEDA ATHA", congrats: "ZABWINO KWAMBIRI!", correct: "Zolondola!" }
+        };
+
+        // --- Verb Data ---
+        const verbs = {
+            learn: { sw: "kujifunza", ny: "kupunzila" }, want: { sw: "kutaka", ny: "kufuna" },
+            help: { sw: "kusaidia", ny: "kutandiza" }, know: { sw: "kujua", ny: "kuziba" },
+            do: { sw: "kufanya", ny: "kuchita" }, come: { sw: "kuja", ny: "kubwela" },
+            read: { sw: "kusoma", ny: "kubelenga" }, go: { sw: "kuenda", ny: "kuyenda" },
+            say: { sw: "kusema", ny: "kukamba" }, run: { sw: "kukimbia", ny: "kutamanga" },
+            hit: { sw: "kupiga", ny: "kumenya" }, teach: { sw: "kufundisha", ny: "kupunzisa" },
+            call: { sw: "kuita", ny: "kuitana" }, make: { sw: "kutengeneza", ny: "kupanga" }
+        };
+        const verbKeys = Object.keys(verbs);
+
+        // --- Grammar Explanations (Swahili/Nyanja Only) ---
+        const grammarExplanations = {
+            sw: { /* As provided */
+                present: "Swahili Present: Subject Prefix + Verb Stem (e.g., ni- + -taka -> ninataka)",
+                present_neg_i: "Swahili Present Negative 'I': Prefix 'si-' + Verb Stem (final -a changes to -i) (e.g., si- + -saidia -> sisaidii)",
+                future: "Swahili Future: Subject Prefix + Tense Marker '-ta-' + Verb Stem (e.g., ni- + -ta- + -jua -> nitajua)",
+                future_neg_i: "Swahili Future Negative 'I': Prefix 'si-' + Tense Marker '-ta-' + Verb Stem (e.g., si- + -ta- + -jua -> sitajua)",
+                past: "Swahili Past: Subject Prefix + Tense Marker '-li-' + Verb Stem (e.g., ni- + -li- + -fanya -> nilifanya)",
+                past_neg_i: "Swahili Past Negative 'I': Prefix 'si-' + Tense Marker '-ku-' + Verb Stem (e.g., si- + -ku- + -fanya -> sikufanya)",
+                perfect: "Swahili Perfect ('have done'): Subject Prefix + Tense Marker '-me-' + Verb Stem (e.g., ni- + -me- + -kuja -> nimekuja)",
+                object_infix: "Swahili Object Infix: Placed between Subject Prefix/Tense and Verb Stem (e.g., a- + -na- (tense) + -mw- (him) + -ita -> anamuita)",
+                habitual: "Swahili Habitual: Subject Prefix 'hu-' + Verb Stem OR Present Tense + '-ga' suffix (e.g., hu- + -soma -> husoma OR na- + -somaga -> nasomaga)",
+                can: "Swahili 'Can': Verb 'kuweza' conjugated + Infinitive of main verb (e.g., ninaweza + kuenda -> ninaweza kuenda)",
+                conditional: "Swahili Conditional ('if/when'): Subject Prefix + Tense Marker '-ki-' + Verb Stem (e.g., u- + -ki- + -sema -> ukisema)",
+                past_continuous: "Swahili Past Continuous: Past tense of 'to be' (e.g., nilikuwa) + Subject Prefix + '-ki-' + Verb Stem (e.g., nilikuwa + ni- + -ki- + -kimbia -> nilikuwa nikikimbia)",
+                reflexive: "Swahili Reflexive ('-self'): Infix '-ji-' placed before Verb Stem (e.g., ni- + -na- + -ji- + -piga -> ninajipiga)",
+                reciprocal: "Swahili Reciprocal ('each other'): Suffix '-ana' added to Verb Stem (e.g., tu- + -na- + -fundishana -> tunafundishana)",
+                passive: "Swahili Passive ('is being done'): Often formed by adding '-wa' to Verb Stem (e.g., -ita -> -itwa). Subject Prefix + Tense + Passive Stem (e.g., a- + -na- + -itwa -> anaitwa). Exceptions exist.",
+                polite_imperative: "Swahili Polite Imperative: Subject Prefix + Verb Stem ending in '-e' (tense marker removed) (e.g., u- + -tengeneze -> utengeneze)"
+            },
+            ny: { /* As provided */
+                present: "Nyanja Present: Subject Prefix + Verb Stem (e.g., ni- + -funa -> nifuna)",
+                present_neg_i: "Nyanja Present Negative 'I': Prefix 'sini-' + Verb Stem (e.g., sini- + -tandiza -> sinitandiza)",
+                future: "Nyanja Future: Subject Prefix + Tense Marker '-za-' + Verb Stem (e.g., ni- + -za- + -ziba -> nizaziba)",
+                future_neg_i: "Nyanja Future Negative 'I': Prefix 'sini-' + Tense Marker '-za-' + Verb Stem (e.g., sini- + -za- + -kamba -> sinizakamba)",
+                past: "Nyanja Past: Subject Prefix + Tense Marker '-na-' + Verb Stem (e.g., ni- + -na- + -chita -> ninachita)",
+                past_neg_i: "Nyanja Past Negative 'I': Prefix 'sini-' + Tense Marker '-na-' + Verb Stem (final -a changes to -e for some verbs) (e.g., sini- + -na- + -chite -> sininachite)",
+                perfect: "Nyanja Perfect ('have done'): Combined Subject/Tense Prefix (nia->na, ua->wa, etc.) + Verb Stem (e.g., na- + -bwela -> nabwela)",
+                object_infix: "Nyanja Object Infix: Placed between Subject Prefix and Verb Stem (e.g., ba- + -ti- (us) + -funa -> batifuna)",
+                habitual: "Nyanja Habitual: Subject Prefix + '-ma-' + Verb Stem (e.g., ni- + -ma- + -belenga -> nimabelenga)",
+                can: "Nyanja 'Can': Subject Prefix + '-nga-' + Verb Stem (final -a often changes to -e) (e.g., ni- + -nga- + -yende -> ningayende)",
+                conditional: "Nyanja Conditional ('if/when'): Subject Prefix + '-ka-' + Verb Stem (e.g., u- + -ka- + -kamba -> ukakamba)",
+                past_continuous: "Nyanja Past Continuous: Combined Subject/Tense Prefix (nienze->nenze, etc.) + Infinitive (e.g., nenze + kutamanga)",
+                reflexive: "Nyanja Reflexive ('-self'): Infix '-zi-' placed before Verb Stem (e.g., ni- + -zi- + -menya -> nizimenya)",
+                reciprocal: "Nyanja Reciprocal ('each other'): Suffix '-ana' added to Verb Stem (e.g., ti- + -punzisana -> tipunzisana)",
+                passive: "Nyanja Passive ('is being done'): Suffix '-iwa' added to Verb Stem (e.g., -itana -> -itaniwa). Subject Prefix + Passive Stem (e.g., a- + -itaniwa -> aitaniwa)",
+                polite_imperative: "Nyanja Polite Imperative: Subject Prefix + Verb Stem ending in '-e' (e.g., u- + -pange -> upange)"
+            },
+            vocabulary: "Match the word to its translation in the target language."
+        };
+
+
+        // --- Game Questions (Populated for Versions 1-5) ---
+        // *** ENSURED MIX OF targetLang in versions 1-5 ***
+        const gameVersions = [
+            [ // Version 1 - Focus: Present, Object Infix, Present Neg, Future, Future Neg
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Tunataka", ny: "Tifuna" }, targetInfinitiveKey: "want", correctAnswer: ["tunataka"], explanation: grammarExplanations.sw.present, grammarPrinciple: "present" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Mnataka", ny: "Mufuna" }, targetInfinitiveKey: "want", correctAnswer: ["mufuna"], explanation: grammarExplanations.ny.present, grammarPrinciple: "present" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Anaitaka", ny: "Aifuna" }, targetInfinitiveKey: "want", correctAnswer: ["anaitaka"], explanation: grammarExplanations.sw.object_infix, grammarPrinciple: "object_infix" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Wanatutaka", ny: "Batifuna" }, targetInfinitiveKey: "want", correctAnswer: ["batifuna"], explanation: grammarExplanations.ny.object_infix, grammarPrinciple: "object_infix" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Sisaidii", ny: "Sinitandiza" }, targetInfinitiveKey: "help", correctAnswer: ["sisaidii"], explanation: grammarExplanations.sw.present_neg_i, grammarPrinciple: "present_neg_i" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Sisomi", ny: "Sinibelenga" }, targetInfinitiveKey: "read", correctAnswer: ["sinibelenga"], explanation: grammarExplanations.ny.present_neg_i, grammarPrinciple: "present_neg_i" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Utawajua", ny: "Uzawabiza" }, targetInfinitiveKey: "know", correctAnswer: ["utawajua"], explanation: grammarExplanations.sw.future, grammarPrinciple: "future" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Tutakujua", ny: "Tizakuziba" }, targetInfinitiveKey: "know", correctAnswer: ["tizakuziba"], explanation: grammarExplanations.ny.future, grammarPrinciple: "future" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Sitajua", ny: "Sinizaziba" }, targetInfinitiveKey: "know", correctAnswer: ["sitajua"], explanation: grammarExplanations.sw.future_neg_i, grammarPrinciple: "future_neg_i" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Sitasema", ny: "Sinizakamba" }, targetInfinitiveKey: "say", correctAnswer: ["sinizakamba"], explanation: grammarExplanations.ny.future_neg_i, grammarPrinciple: "future_neg_i" },
+            ],
+            [ // Version 2 - Focus: Past, Past Neg, Perfect
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Alifanya", ny: "Anachita" }, targetInfinitiveKey: "do", correctAnswer: ["alifanya"], explanation: grammarExplanations.sw.past, grammarPrinciple: "past" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Tulifanya", ny: "Tinachita" }, targetInfinitiveKey: "do", correctAnswer: ["tinachita"], explanation: grammarExplanations.ny.past, grammarPrinciple: "past" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Sikusoma", ny: "Sininabelenge" }, targetInfinitiveKey: "read", correctAnswer: ["sikusoma"], explanation: grammarExplanations.sw.past_neg_i, grammarPrinciple: "past_neg_i" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Sikufanya", ny: "Sininachite" }, targetInfinitiveKey: "do", correctAnswer: ["sininachite"], explanation: grammarExplanations.ny.past_neg_i, grammarPrinciple: "past_neg_i" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Nimemwita", ny: "Namuitana" }, targetInfinitiveKey: "call", correctAnswer: ["nimemwita"], explanation: grammarExplanations.sw.perfect, grammarPrinciple: "perfect" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Mmekuja", ny: "Mwabwela" }, targetInfinitiveKey: "come", correctAnswer: ["mwabwela"], explanation: grammarExplanations.ny.perfect, grammarPrinciple: "perfect" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Wamekuja", ny: "Babwela" }, targetInfinitiveKey: "come", correctAnswer: ["wamekuja"], explanation: grammarExplanations.sw.perfect, grammarPrinciple: "perfect" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Amekuja", ny: "Abwela" }, targetInfinitiveKey: "come", correctAnswer: ["abwela"], explanation: grammarExplanations.ny.perfect, grammarPrinciple: "perfect" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Sikupiga", ny: "Sininamenye" }, targetInfinitiveKey: "hit", correctAnswer: ["sikupiga"], explanation: grammarExplanations.sw.past_neg_i, grammarPrinciple: "past_neg_i" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Sikukimbia", ny: "Sininatamange" }, targetInfinitiveKey: "run", correctAnswer: ["sininatamange"], explanation: grammarExplanations.ny.past_neg_i, grammarPrinciple: "past_neg_i" },
+            ],
+            [ // Version 3 - Focus: Habitual, Can, Conditional, Past Continuous
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Mimi husoma", ny: "Nimabelenga" }, targetInfinitiveKey: "read", correctAnswer: ["mimi husoma", "husoma"], explanation: grammarExplanations.sw.habitual, grammarPrinciple: "habitual" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Wao husoma", ny: "Bamabelenga" }, targetInfinitiveKey: "read", correctAnswer: ["bamabelenga"], explanation: grammarExplanations.ny.habitual, grammarPrinciple: "habitual" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Ninaweza kuenda", ny: "Ningayende" }, targetInfinitiveKey: "go", correctAnswer: ["ninaweza kuenda"], explanation: grammarExplanations.sw.can, grammarPrinciple: "can" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Unaweza kuenda", ny: "Ungayende" }, targetInfinitiveKey: "go", correctAnswer: ["ungayende"], explanation: grammarExplanations.ny.can, grammarPrinciple: "can" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Ukisema", ny: "Ukakamba" }, targetInfinitiveKey: "say", correctAnswer: ["ukisema"], explanation: grammarExplanations.sw.conditional, grammarPrinciple: "conditional" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Akisema", ny: "Akakamba" }, targetInfinitiveKey: "say", correctAnswer: ["akakamba"], explanation: grammarExplanations.ny.conditional, grammarPrinciple: "conditional" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Mlikuwa mkikimbia", ny: "Mwenze kutamanga" }, targetInfinitiveKey: "run", correctAnswer: ["mlikuwa mkikimbia"], explanation: grammarExplanations.sw.past_continuous, grammarPrinciple: "past_continuous" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Nilikuwa nikikimbia", ny: "Nenze kutamanga" }, targetInfinitiveKey: "run", correctAnswer: ["nenze kutamanga"], explanation: grammarExplanations.ny.past_continuous, grammarPrinciple: "past_continuous" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Alikuwa akikimbia", ny: "Enze kutamanga" }, targetInfinitiveKey: "run", correctAnswer: ["alikuwa akikimbia"], explanation: grammarExplanations.sw.past_continuous, grammarPrinciple: "past_continuous" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Walikuwa wakikimbia", ny: "Benze kutamanga" }, targetInfinitiveKey: "run", correctAnswer: ["benze kutamanga"], explanation: grammarExplanations.ny.past_continuous, grammarPrinciple: "past_continuous" },
+            ],
+            [ // Version 4 - Focus: Reflexive, Reciprocal, Passive, Polite Imperative
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Ninajipiga", ny: "Nizimenya" }, targetInfinitiveKey: "hit", correctAnswer: ["ninajipiga"], explanation: grammarExplanations.sw.reflexive, grammarPrinciple: "reflexive" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Unajipiga", ny: "Uzimenya" }, targetInfinitiveKey: "hit", correctAnswer: ["uzimenya"], explanation: grammarExplanations.ny.reflexive, grammarPrinciple: "reflexive" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Tunafundishana", ny: "Tipunzisana" }, targetInfinitiveKey: "teach", correctAnswer: ["tunafundishana"], explanation: grammarExplanations.sw.reciprocal, grammarPrinciple: "reciprocal" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Mnafundishana", ny: "Mupunzisana" }, targetInfinitiveKey: "teach", correctAnswer: ["mupunzisana"], explanation: grammarExplanations.ny.reciprocal, grammarPrinciple: "reciprocal" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Anaitwa", ny: "Aitaniwa" }, targetInfinitiveKey: "call", correctAnswer: ["anaitwa"], explanation: grammarExplanations.sw.passive, grammarPrinciple: "passive" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Wanaitwa", ny: "Baitaniwa" }, targetInfinitiveKey: "call", correctAnswer: ["baitaniwa"], explanation: grammarExplanations.ny.passive, grammarPrinciple: "passive" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Utengeneze", ny: "Upange" }, targetInfinitiveKey: "make", correctAnswer: ["utengeneze"], explanation: grammarExplanations.sw.polite_imperative, grammarPrinciple: "polite_imperative" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Atengeneze", ny: "Apange" }, targetInfinitiveKey: "make", correctAnswer: ["apange"], explanation: grammarExplanations.ny.polite_imperative, grammarPrinciple: "polite_imperative" },
+                 { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Wanajipiga", ny: "Bazimenya" }, targetInfinitiveKey: "hit", correctAnswer: ["wanajipiga"], explanation: grammarExplanations.sw.reflexive, grammarPrinciple: "reflexive" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Wanafundishana", ny: "Bapunzisana" }, targetInfinitiveKey: "teach", correctAnswer: ["bapunzisana"], explanation: grammarExplanations.ny.reciprocal, grammarPrinciple: "reciprocal" },
+            ],
+             [ // Version 5 - Mixed Review
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Nilifanya", ny: "Ninachita" }, targetInfinitiveKey: "do", correctAnswer: ["nilifanya"], explanation: grammarExplanations.sw.past, grammarPrinciple: "past" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Nitajua", ny: "Nizaziba" }, targetInfinitiveKey: "know", correctAnswer: ["nizaziba"], explanation: grammarExplanations.ny.future, grammarPrinciple: "future" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Wanatutaka", ny: "Batifuna" }, targetInfinitiveKey: "want", correctAnswer: ["wanatutaka"], explanation: grammarExplanations.sw.object_infix, grammarPrinciple: "object_infix" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Sisaidii", ny: "Sinitandiza" }, targetInfinitiveKey: "help", correctAnswer: ["sinitandiza"], explanation: grammarExplanations.ny.present_neg_i, grammarPrinciple: "present_neg_i" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Mmekuja", ny: "Mwabwela" }, targetInfinitiveKey: "come", correctAnswer: ["mmekuja"], explanation: grammarExplanations.sw.perfect, grammarPrinciple: "perfect" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Mlikuwa mkikimbia", ny: "Mwenze kutamanga" }, targetInfinitiveKey: "run", correctAnswer: ["mwenze kutamanga"], explanation: grammarExplanations.ny.past_continuous, grammarPrinciple: "past_continuous" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Anaweza kujipiga", ny: "Angazimenye" }, targetInfinitiveKey: "hit", correctAnswer: ["anaweza kujipiga"], explanation: grammarExplanations.sw.reflexive, grammarPrinciple: "reflexive" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Ukisema", ny: "Ukakamba" }, targetInfinitiveKey: "say", correctAnswer: ["ukakamba"], explanation: grammarExplanations.ny.conditional, grammarPrinciple: "conditional" },
+                { type: 'conjugation', targetLang: 'sw', sourceSentences: { sw: "Anaitwa", ny: "Aitaniwa" }, targetInfinitiveKey: "call", correctAnswer: ["anaitwa"], explanation: grammarExplanations.sw.passive, grammarPrinciple: "passive" },
+                { type: 'conjugation', targetLang: 'ny', sourceSentences: { sw: "Utengeneze", ny: "Upange" }, targetInfinitiveKey: "make", correctAnswer: ["upange"], explanation: grammarExplanations.ny.polite_imperative, grammarPrinciple: "polite_imperative" },
+            ],
+            // Version 6: Vocabulary (Generated dynamically)
+            [],
+            // Version 7 removed
+        ];
+
+        // --- DOM Elements ---
+        const setupModal = document.getElementById('setupModal');
+        const gameArea = document.getElementById('gameArea');
+        // Removed balloonGameArea reference
+        const knownLangCheckboxes = document.querySelectorAll('.known-lang');
+        const baseLangSelectionDiv = document.getElementById('baseLangSelection');
+        const baseLangOptionsDiv = document.getElementById('baseLangOptions');
+        const targetLangSelect = document.getElementById('targetLangSelect');
+        const versionSelect = document.getElementById('versionSelect');
+        const timerCheckbox = document.getElementById('timerCheckbox');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const setupError = document.getElementById('setupError');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const attemptsDisplay = document.getElementById('attemptsDisplay');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const sourcePrompt = document.getElementById('sourcePrompt');
+        const sourceSentenceEl = document.getElementById('sourceSentence');
+        const verbSection = document.getElementById('verbSection');
+        const targetInfinitiveEl = document.getElementById('targetInfinitive');
+        const answerForm = document.getElementById('answerForm');
+        const answerInput = document.getElementById('answerInput');
+        const feedbackArea = document.getElementById('feedbackArea');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        const restartVersionBtn = document.getElementById('restartVersionBtn');
+        const progressBar = document.getElementById('progressBar');
+        // Removed Balloon Game Element references
+
+        // --- Game State ---
+        let knownLanguages = [];
+        let baseLang = 'sw'; // Default base language to Swahili
+        let targetLang = 'ny'; // Default target to Nyanja
+        let currentVersionIndex = 0;
+        let currentLevel = 0;
+        let currentAttempts = 3;
+        let timerEnabled = false;
+        let timerId = null;
+        let timeLeft = 20;
+        let currentQuestion = {};
+        let gameQuestions = [];
+        let currentGameType = 'conjugation'; // 'conjugation' or 'vocabulary'
+
+        // Removed Balloon Game State
+
+        // --- Utility Function ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Setup & Initialization ---
+        function initializeGame() {
+            setupError.textContent = '';
+            currentLevel = 0;
+            stopTimer();
+
+            currentGameType = (currentVersionIndex === 5) ? 'vocabulary' : 'conjugation';
+
+            if (!populateQuestions()) {
+                 console.log("populateQuestions returned false. Stopping initialization.");
+                 return false; // Stop if questions not populated
+            }
+
+            console.log(`Starting game. Type: ${currentGameType}, Questions loaded: ${gameQuestions.length}`);
+
+            setupModal.style.display = 'none';
+            gameArea.style.display = 'block';
+            loadLevel();
+            return true;
+        }
+
+        function updateBaseLangOptions() {
+            const selectedKnown = Array.from(knownLangCheckboxes)
+                                        .filter(cb => cb.checked)
+                                        .map(cb => cb.value);
+
+            baseLangOptionsDiv.innerHTML = '';
+            if (selectedKnown.length === 2) {
+                baseLangSelectionDiv.style.display = 'block';
+                selectedKnown.forEach((lang, index) => {
+                    const label = document.createElement('label');
+                    label.className = 'inline-flex items-center mr-4';
+                    const input = document.createElement('input');
+                    input.type = 'radio'; input.name = 'baseLang'; input.value = lang;
+                    input.className = 'custom-radio base-lang-radio';
+                    if (lang === baseLang || index === 0) {
+                        input.checked = true;
+                        baseLang = lang;
+                    }
+                    input.addEventListener('change', (e) => { baseLang = e.target.value; });
+
+                    const span = document.createElement('span');
+                    span.className = 'ml-2 text-gray-700';
+                    span.textContent = langData[lang].name;
+                    label.appendChild(input); label.appendChild(span);
+                    baseLangOptionsDiv.appendChild(label);
+                });
+            } else {
+                baseLangSelectionDiv.style.display = 'none';
+                baseLang = selectedKnown.length === 1 ? selectedKnown[0] : 'sw';
+            }
+        }
+
+        // --- Conjugation / Vocabulary Game Logic ---
+        function updateProgressBar() {
+            const totalLevels = gameQuestions.length > 0 ? gameQuestions.length : 1;
+            const progress = ((currentLevel) / totalLevels) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function populateQuestions() {
+             gameQuestions = [];
+             const selectedVersion = currentVersionIndex;
+             console.log(`Populating questions for Version Index: ${selectedVersion}, Target Lang: ${targetLang}`);
+
+            if (selectedVersion === 5) { // Version 6 (index 5) is Vocabulary
+                const shuffledVerbKeys = [...verbKeys].sort(() => 0.5 - Math.random());
+                const selectedKeys = shuffledVerbKeys;
+
+                selectedKeys.forEach(key => {
+                    let sourceWordLang = baseLang;
+                    gameQuestions.push({
+                        type: 'vocabulary', sourceLang: sourceWordLang, targetLang: targetLang,
+                        sourceSentences: { sw: verbs[key]['sw'], ny: verbs[key]['ny'] },
+                        correctAnswer: [verbs[key][targetLang]],
+                        explanation: `The ${langData[targetLang].name} word for '${verbs[key][sourceWordLang]}' is '${verbs[key][targetLang]}'.`,
+                        grammarPrinciple: 'vocabulary'
+                    });
+                });
+                console.log(`Populated ${gameQuestions.length} vocabulary questions.`);
+
+            } else { // Conjugation versions (0-4)
+                 if (!gameVersions[selectedVersion] || gameVersions[selectedVersion].length === 0) {
+                     console.error(`Version ${selectedVersion + 1} data array is missing or empty.`);
+                     setupError.textContent = `Error: Version ${selectedVersion + 1} is empty.`;
+                     return false;
+                 }
+                 console.log(`Total questions in Version ${selectedVersion + 1} source data: ${gameVersions[selectedVersion].length}`);
+
+                 // Filter questions based *only* on the target language selected
+                 gameQuestions = gameVersions[selectedVersion].filter(q => {
+                    // console.log(`Checking q: target=${q?.targetLang}, type=${q?.type}`); // Uncomment for detailed filter log
+                    return q && q.targetLang === targetLang && q.type === 'conjugation';
+                 });
+
+                 console.log(`Found ${gameQuestions.length} questions for Target ${targetLang} in Version ${selectedVersion + 1}.`);
+
+                 if (gameQuestions.length === 0) {
+                      console.error(`Filtering failed: No questions found for Version ${selectedVersion + 1} targeting ${targetLang}. Check gameVersions data.`);
+                      setupError.textContent = `Error: No questions available for Version ${selectedVersion + 1} targeting ${langData[targetLang].name}. Please check data.`;
+                      return false;
+                 }
+            }
+
+             if (gameQuestions.length === 0) {
+                 console.error(`FATAL: No questions available after processing Version ${selectedVersion + 1}, Target: ${targetLang}.`);
+                 setupError.textContent = "Error: No questions available for this selection.";
+                 return false;
+             }
+             // Shuffle the selected questions for the level
+             gameQuestions = shuffleArray(gameQuestions); // Use the defined shuffle function
+             console.log("Questions populated and shuffled successfully.");
+             return true;
+        }
+
+
+        function loadLevel() {
+             if (currentLevel >= gameQuestions.length) {
+                console.log("Game complete condition met.");
+                feedbackArea.innerHTML = `<span class="feedback-complete">
+                    <span>${langData[baseLang]?.congrats || 'Congratulations!'}</span>
+                    <span>${langData[targetLang]?.congrats || 'Well Done!'} ${langData[targetLang]?.flag || ''}</span>
+                </span>`;
+                answerInput.disabled = true;
+                nextLevelBtn.style.display = 'none';
+                restartVersionBtn.textContent = "Play Another Version";
+                restartVersionBtn.style.display = 'block';
+                stopTimer();
+                progressBar.style.width = '100%';
+                return;
+            }
+
+            currentQuestion = gameQuestions[currentLevel];
+            console.log(`Loading Level ${currentLevel + 1}/${gameQuestions.length}`, currentQuestion);
+            currentAttempts = 3;
+            levelDisplay.textContent = `${currentLevel + 1} / ${gameQuestions.length}`;
+            attemptsDisplay.textContent = currentAttempts;
+
+            // Display based on type
+            if (currentQuestion.type === 'vocabulary') {
+                sourcePrompt.textContent = `Translate this word (${langData[currentQuestion.sourceLang]?.name || 'Source'}):`;
+                sourceSentenceEl.textContent = currentQuestion.sourceSentences[currentQuestion.sourceLang];
+                verbSection.style.display = 'none';
+            } else { // Conjugation
+                sourcePrompt.textContent = `Translate this idea (${langData[baseLang]?.name || 'Base'}):`;
+                sourceSentenceEl.textContent = currentQuestion.sourceSentences[baseLang];
+                verbSection.style.display = 'block';
+                targetInfinitiveEl.textContent = verbs[currentQuestion.targetInfinitiveKey]?.[targetLang] || '???';
+            }
+
+
+            answerInput.value = '';
+            answerInput.disabled = false;
+            answerInput.focus();
+            feedbackArea.innerHTML = '';
+
+            nextLevelBtn.style.display = 'none';
+            restartVersionBtn.style.display = 'none';
+            updateProgressBar();
+            startTimer();
+        }
+
+        function startTimer() {
+            stopTimer();
+            if (timerEnabled) {
+                timeLeft = 20;
+                timerDisplay.textContent = timeLeft;
+                timerDisplay.style.display = 'block';
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        handleAnswer(true); // Timeout
+                    }
+                }, 1000);
+            } else {
+                timerDisplay.style.display = 'none';
+            }
+        }
+        function stopTimer() { clearInterval(timerId); timerId = null; }
+
+        function handleAnswer(isTimeout = false) {
+            stopTimer();
+            const userAnswer = answerInput.value.trim().toLowerCase();
+
+            feedbackArea.innerHTML = `
+                <div id="feedbackMessage"></div>
+                <div id="reviewSection" class="review-section" style="display: none;">
+                    <button id="reviewBtn" class="btn btn-review">Review Grammar?</button>
+                    <div id="reviewExplanation" class="review-explanation" style="display: none;"></div>
+                </div>
+                <div id="gameOverExplanation" class="explanation" style="display: none;"></div>
+            `;
+            const feedbackMessageEl = feedbackArea.querySelector('#feedbackMessage');
+            const reviewSectionEl = feedbackArea.querySelector('#reviewSection');
+            const reviewBtnEl = feedbackArea.querySelector('#reviewBtn');
+            const reviewExplanationEl = feedbackArea.querySelector('#reviewExplanation');
+            const gameOverExplanationEl = feedbackArea.querySelector('#gameOverExplanation');
+            if (reviewBtnEl) reviewBtnEl.addEventListener('click', showReview);
+
+             if (!currentQuestion || !currentQuestion.correctAnswer) {
+                 console.error("Error: Missing question data in handleAnswer.");
+                 feedbackMessageEl.textContent = "Error processing answer.";
+                 feedbackArea.className = 'feedback feedback-incorrect'; return;
+             }
+            const correctAnswers = currentQuestion.correctAnswer.map(ans => ans.toLowerCase());
+
+            if (!isTimeout && correctAnswers.includes(userAnswer)) {
+                feedbackMessageEl.innerHTML = `
+                    <span class="flag-icon">${langData[targetLang]?.flag || ''}</span>
+                    <span>${langData[baseLang]?.correct || 'Correct!'}</span>
+                    <span>${langData[targetLang]?.correct || 'Correct!'}</span>
+                `;
+                feedbackArea.className = 'feedback feedback-correct';
+                answerInput.disabled = true;
+
+                if (currentLevel >= gameQuestions.length - 1) {
+                     currentLevel++; updateProgressBar();
+                     setTimeout(() => {
+                         feedbackMessageEl.innerHTML = `<span class="feedback-complete">
+                             <span>${langData[baseLang]?.congrats || 'Congrats!'}</span>
+                             <span>${langData[targetLang]?.congrats || 'Well Done!'} ${langData[targetLang]?.flag || ''}</span>
+                         </span>`;
+                         feedbackArea.className = 'feedback feedback-complete';
+                         nextLevelBtn.style.display = 'none';
+                         restartVersionBtn.textContent = "Play Another Version";
+                         restartVersionBtn.style.display = 'block';
+                         restartVersionBtn.focus();
+                     }, 1500);
+                } else {
+                     nextLevelBtn.style.display = 'inline-block'; nextLevelBtn.focus();
+                }
+            } else {
+                currentAttempts--; attemptsDisplay.textContent = currentAttempts;
+                answerInput.focus(); answerInput.select();
+                feedbackArea.className = 'feedback feedback-incorrect';
+
+                if (currentAttempts > 0) {
+                    feedbackMessageEl.innerHTML = `
+                        <div>${langData[baseLang]?.tryAgain || 'Try Again'} / ${langData[targetLang]?.tryAgain || 'Try Again'}</div>
+                        ${isTimeout ? "<div>(Timeout!)</div>" : ""}
+                    `;
+                    if (currentAttempts === 1 && currentGameType !== 'vocabulary') {
+                        reviewSectionEl.style.display = 'block';
+                        if (reviewBtnEl) reviewBtnEl.style.display = 'inline-block';
+                        if (reviewExplanationEl) reviewExplanationEl.style.display = 'none';
+                    } else {
+                         if (reviewSectionEl) reviewSectionEl.style.display = 'none';
+                    }
+                    startTimer();
+                } else {
+                    const explanationText = currentQuestion.explanation || "No explanation available.";
+                    feedbackMessageEl.innerHTML = `
+                        <div>${langData[baseLang]?.gameOver || 'Game Over'} / ${langData[targetLang]?.gameOver || 'Game Over'}</div>`;
+                    if (gameOverExplanationEl) {
+                        gameOverExplanationEl.innerHTML = `<strong>Explanation:</strong> ${explanationText}`;
+                        gameOverExplanationEl.style.display = 'block';
+                    }
+                    feedbackArea.className = 'feedback feedback-gameover';
+                    if (reviewSectionEl) reviewSectionEl.style.display = 'none';
+                    answerInput.disabled = true;
+                    restartVersionBtn.textContent = "Restart Game";
+                    restartVersionBtn.style.display = 'inline-block';
+                    nextLevelBtn.style.display = 'none';
+                }
+            }
+        }
+
+        function showReview() {
+            const principleKey = currentQuestion.grammarPrinciple;
+            if (currentGameType === 'vocabulary' || !principleKey) {
+                 const reviewExplanationEl = feedbackArea.querySelector('#reviewExplanation');
+                 if(reviewExplanationEl) {
+                    reviewExplanationEl.textContent = "No specific grammar review for vocabulary.";
+                    reviewExplanationEl.style.display = 'block';
+                 }
+                 const reviewBtnEl = feedbackArea.querySelector('#reviewBtn');
+                 if(reviewBtnEl) reviewBtnEl.style.display = 'none';
+                 return;
+            }
+
+            const langExplanations = grammarExplanations[targetLang] || {};
+            const explanation = langExplanations[principleKey] || "No explanation available.";
+            const reviewExplanationEl = feedbackArea.querySelector('#reviewExplanation');
+            const reviewBtnEl = feedbackArea.querySelector('#reviewBtn');
+            if (reviewExplanationEl) { reviewExplanationEl.innerHTML = `<strong>Review:</strong> ${explanation}`; reviewExplanationEl.style.display = 'block'; }
+            if (reviewBtnEl) { reviewBtnEl.style.display = 'none'; }
+        }
+
+        // Removed all Balloon Pop Game Logic
+
+        // --- Event Listeners ---
+        knownLangCheckboxes.forEach(cb => { cb.addEventListener('change', updateBaseLangOptions); });
+
+        startGameBtn.addEventListener('click', () => {
+            knownLanguages = Array.from(knownLangCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
+            targetLang = targetLangSelect.value;
+            currentVersionIndex = parseInt(versionSelect.value);
+            timerEnabled = timerCheckbox.checked;
+
+            // Update baseLang based on final knownLanguages
+            if (knownLanguages.length === 1) { baseLang = knownLanguages[0]; }
+            else if (knownLanguages.length === 2) { const selectedRadio = document.querySelector('.base-lang-radio:checked'); baseLang = selectedRadio ? selectedRadio.value : knownLanguages[0]; }
+            else { baseLang = 'sw'; }
+
+            // Validation
+            if (knownLanguages.length === 0) { setupError.textContent = "Please select Swahili or Nyanja."; return; }
+            if (knownLanguages.includes(targetLang)) { setupError.textContent = "Target language cannot be one you know."; return; }
+            if (!knownLanguages.includes(baseLang)) { setupError.textContent = "Base language must be one you know."; return; }
+
+            initializeGame();
+        });
+
+        answerForm.addEventListener('submit', (e) => { e.preventDefault(); handleAnswer(); });
+        nextLevelBtn.addEventListener('click', () => { currentLevel++; loadLevel(); });
+        restartVersionBtn.addEventListener('click', () => {
+            if (restartVersionBtn.textContent === "Play Another Version") {
+                 gameArea.style.display = 'none'; setupModal.style.display = 'flex';
+            } else { currentLevel = 0; loadLevel(); } // Restart current version
+        });
+
+        // Removed Balloon Game Listeners
+
+        // --- Initial setup ---
+        updateBaseLangOptions(); // Call initially
+
+    </script>
+
+</body>
+</html>
+<!-- ```
+
+**Explanation of Fix:**
+
+The primary change was within the `gameVersions` constant. I manually reviewed and corrected the arrays for indices 1, 2, 3, and 4 (Versions 2-5). I ensured that each of these arrays contains 10 question objects, and importantly, that there's a mix of questions with `targetLang: 'sw'` and `targetLang: 'ny'`.
+
+For example, `gameVersions[1]` (Version 2) now looks like this internally (simplified):
+
+```javascript
+[
+  { type: 'conjugation', targetLang: 'sw', /* ... */ }, // Swahili target
+  { type: 'conjugation', targetLang: 'ny', /* ... */ }, // Nyanja target
+  { type: 'conjugation', targetLang: 'sw', /* ... */ },
+  { type: 'conjugation', targetLang: 'ny', /* ... */ },
+  // ... and so on for 10 questions total, mixed targets
+]
+```
+
+With this corrected data structure, the filter `gameVersions[selectedVersion].filter(q => q && q.targetLang === targetLang ...)` inside `populateQuestions` should now successfully find questions regardless of whether you choose Swahili or Nyanja as the target language for versions 1 through 5. This should allow `populateQuestions` to return `true`, and `initializeGame` will then proceed to hide the modal and show the game area (`loadLevel`).
+
+Please try running the updated code. The "Start Game" button should now launch the game correctly for all versions and language combinatio -->
